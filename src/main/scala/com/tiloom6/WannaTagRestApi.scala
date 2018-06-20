@@ -20,11 +20,16 @@ trait WannaTagRestApi extends RestApi {
   protected override implicit val actorSystem: ActorSystem
 
   /** WannaTagのREST-APIルータ */
-  protected override val routes: Route = pathPrefix("Wannatag") {
+  protected override val routes: Route = responseWannaTags
+
+  def responseWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       get {
-        onSuccess(getWannatag) { result =>
-          complete(OK, result.toString)
+        //parameters('older.as[String], 'postDate.as[Long], 'limit.as[Int]) {(older, postDate, limit) =>
+        //  complete(OK, s"older = ${older}, postDate = ${postDate}, limit = ${limit}")
+        //}
+        onSuccess(getWannatag) { res =>
+          complete(OK, res.toString)
         }
       }
     }
@@ -38,5 +43,9 @@ trait WannaTagRestApi extends RestApi {
     *
     * @return WannaTag
     */
-  private def getWannatag = wannatag.?(GetWannaTag(1)).mapTo[Int]
+  private def getWannatag = {
+    // Future[Any]型で受け取る
+    val futureResult = wannatag ? GetWannaTag(1)
+    futureResult.mapTo[Int]
+  }
 }
