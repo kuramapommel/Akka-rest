@@ -4,11 +4,9 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.{Failure, Success}
 
@@ -17,6 +15,7 @@ import scala.util.{Failure, Success}
   */
 trait WannaTagRestApi extends RestApi {
   import WannaTagActor._
+  import WannaTagRequest._
 
   /** タイムアウト時間 */
   protected implicit val timeout: Timeout
@@ -25,9 +24,9 @@ trait WannaTagRestApi extends RestApi {
   protected override implicit val actorSystem: ActorSystem
 
   /** WannaTagのREST-APIルータ */
-  protected override val routes: Route = responseWannaTags
+  protected override val routes: Route = getWannaTags ~ postWannaTags
 
-  def responseWannaTags = pathPrefix("wannatags") {
+  def getWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       get {
         // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
@@ -37,6 +36,16 @@ trait WannaTagRestApi extends RestApi {
             case Success(res) => complete(OK, s"older = $compare, postDate = $postDate, limit = $limit, wannatag = $res")
             case Failure(e) => complete(BadRequest)
           }
+        }
+      }
+    }
+  }
+
+  def postWannaTags = pathPrefix("wannatags") {
+    pathEndOrSingleSlash {
+      post {
+        entity(as[WannaTagPost]) { wannaTagPost =>
+          complete(OK, s"title = ${wannaTagPost.title}, body = ${wannaTagPost.body} userId = ${wannaTagPost.userId}")
         }
       }
     }
