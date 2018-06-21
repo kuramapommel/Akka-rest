@@ -7,6 +7,11 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.util.{Failure, Success}
+
 /**
   * WannaTagのREST-APIのルーティングを管理するトレイト
   */
@@ -25,11 +30,13 @@ trait WannaTagRestApi extends RestApi {
   def responseWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       get {
-        //parameters('older.as[String], 'postDate.as[Long], 'limit.as[Int]) {(older, postDate, limit) =>
-        //  complete(OK, s"older = ${older}, postDate = ${postDate}, limit = ${limit}")
-        //}
-        onSuccess(getWannatag) { res =>
-          complete(OK, res.toString)
+        // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
+        parameters('compare ? "older", 'postDate.as[Long] ? -1L, 'limit.as[Int] ? -1L) { (compare, postDate, limit) =>
+          // getWannatagの実行を待って成功ならSuccess, 失敗ならFialure
+          onComplete(getWannatag) {
+            case Success(res) => complete(OK, s"older = $compare, postDate = $postDate, limit = $limit, wannatag = $res")
+            case Failure(e) => complete(BadRequest)
+          }
         }
       }
     }
