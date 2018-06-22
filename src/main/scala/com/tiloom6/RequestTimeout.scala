@@ -9,13 +9,14 @@ import com.typesafe.config.Config
 trait RequestTimeout {
   import scala.concurrent.duration._
 
+  protected val config: Config
+
   /**
     * コンフィグ設定からタイムアウト時間を取得する
     *
-    * @param config コンフィグ設定
     * @return タイムアウト時間
     */
-  protected def configuredRequestTimeout(config: Config): Timeout = {
+  def configuredRequestTimeout: Timeout = {
     val requestTimeout = config.getString("akka.http.server.request-timeout")
     val duration = Duration(requestTimeout)
     FiniteDuration(duration.length, duration.unit)

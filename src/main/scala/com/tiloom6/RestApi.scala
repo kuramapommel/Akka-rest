@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 /**
   * REST-APIトレイト
   */
-trait RestApi extends RequestTimeout {
+trait RestApi {
 
   /** REST-APIルータ */
   protected val routes: Route

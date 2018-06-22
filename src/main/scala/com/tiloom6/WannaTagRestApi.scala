@@ -1,6 +1,5 @@
 package com.tiloom6
 
-import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.StatusCodes._
@@ -20,13 +19,10 @@ trait WannaTagRestApi extends RestApi {
   /** タイムアウト時間 */
   protected implicit val timeout: Timeout
 
-  /** WannaTagのREST-APIを統括するActorSystem */
-  protected override implicit val actorSystem: ActorSystem
-
   /** WannaTagのREST-APIルータ */
   protected override val routes: Route = getWannaTags ~ postWannaTags
 
-  def getWannaTags = pathPrefix("wannatags") {
+  private def getWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       get {
         // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
@@ -41,7 +37,7 @@ trait WannaTagRestApi extends RestApi {
     }
   }
 
-  def postWannaTags = pathPrefix("wannatags") {
+  private def postWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       post {
         entity(as[WannaTagPost]) { wannaTagPost =>
@@ -52,7 +48,7 @@ trait WannaTagRestApi extends RestApi {
   }
 
   /** WannaTagのREST-APIのトップレベルActorRef */
-  private lazy val wannatag = actorSystem.actorOf(WannaTagActor.props, "wannatag")
+  private lazy val wannatagActor = actorSystem.actorOf(WannaTagActor.props, "wannatag")
 
   /**
     * WannaTagを取得する
@@ -61,7 +57,7 @@ trait WannaTagRestApi extends RestApi {
     */
   private def getWannatag = {
     // Future[Any]型で受け取る
-    val futureResult = wannatag ? GetWannaTag(1)
+    val futureResult = wannatagActor ? GetWannaTag(1)
     futureResult.mapTo[Int]
   }
 }
