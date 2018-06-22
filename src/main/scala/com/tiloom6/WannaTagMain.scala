@@ -1,7 +1,7 @@
 package com.tiloom6
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 
 /**
   * WannaTagのREST-APIを起動するためのメインクラス

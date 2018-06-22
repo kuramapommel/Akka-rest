@@ -29,10 +29,15 @@ object WannaTagActor {
 final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   import WannaTagActor._
 
+  private val wannaTagTableActor = context.actorOf(WannaTagTableActor.props, "wannatagTable")
+  context.watch(wannaTagTableActor)
+
   /**
     * WannaTagアクターのレシーバ
     */
   override def receive = {
-    case GetWannaTag(wannaTagId) => sender ! wannaTagId
+    case GetWannaTag(wannaTagId) =>
+      wannaTagTableActor ! wannaTagId
+      sender() ! wannaTagId
   }
 }
