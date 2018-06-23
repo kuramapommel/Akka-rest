@@ -15,7 +15,7 @@ object WannaTagTableActor {
 }
 
 final class WannaTagTableActor extends Actor {
-  import slick.jdbc.JdbcBackend._
+  import slick.jdbc.MySQLProfile.api._
 
   private val config = ConfigFactory.load("wannamysql")
   private val db = Database.forConfig("mysql.db", config = config)
