@@ -15,6 +15,7 @@ import scala.util.{Failure, Success}
 trait WannaTagRestApi extends RestApi {
   import WannaTagActor._
   import WannaTagRequest._
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   /** タイムアウト時間 */
   protected implicit val timeout: Timeout
@@ -28,7 +29,7 @@ trait WannaTagRestApi extends RestApi {
         // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
         parameters('compare ? "older", 'postDate.as[Long] ? -1L, 'limit.as[Int] ? -1L) { (compare, postDate, limit) =>
           // getWannatagの実行を待って成功ならSuccess, 失敗ならFialure
-          onComplete(getWannatag) {
+          onComplete(getWannatag(compare, postDate, limit)) {
             case Success(res) => complete(OK, s"older = $compare, postDate = $postDate, limit = $limit, wannatag = $res")
             case Failure(e) => complete(BadRequest)
           }
@@ -55,9 +56,9 @@ trait WannaTagRestApi extends RestApi {
     *
     * @return WannaTag
     */
-  private def getWannatag = {
+  private def getWannatag(compare: String, postDate: Long, limit: Long) = {
     // Future[Any]型で受け取る
-    val futureResult = wannatagActor ? GetWannaTag(1)
+    val futureResult = wannatagActor ? GetWannaTags(compare, postDate, limit)
     futureResult.mapTo[Int]
   }
 }

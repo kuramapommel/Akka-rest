@@ -3,12 +3,15 @@ package com.tiloom6
 import com.typesafe.config.ConfigFactory
 import slick.codegen.SourceCodeGenerator
 import slick.jdbc.meta.MTable
-import slick.{model => m}
+import slick.{model => SlickModel}
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
+/**
+  * Databaseからテーブル情報を取得してmodelクラスを生成する
+  */
 object SlickModelGenerator extends App {
   import slick.jdbc.MySQLProfile.api._
 
@@ -28,7 +31,11 @@ object SlickModelGenerator extends App {
 
 }
 
-case class CustomSourceCodeGenerator( model: m.Model ) extends SourceCodeGenerator( model ) {
+/**
+  * カスタムジェネレータ
+  * * java.sql.Timestampをorg.joda.time.DateTimeに置き換える
+  */
+case class CustomSourceCodeGenerator( model: SlickModel.Model ) extends SourceCodeGenerator( model ) {
 
   override def code = "import com.github.tototoshi.slick.MySQLJodaSupport._\n" + "import org.joda.time.DateTime\n" + super.code
 

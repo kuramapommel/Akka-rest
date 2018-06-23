@@ -22,8 +22,9 @@ class WannaTagActorSpec extends TestKit(ActorSystem("testBoxOffice"))
       implicit val timeout: Timeout = FiniteDuration(duration.length, duration.unit)
       val wannatagActor = system.actorOf(WannaTagActor.props, "wannatag")
 
-      wannatagActor ! GetWannaTag(1)
-      expectMsg(1)
+      wannatagActor ! GetWannaTags("older", 1, 20)
+      Thread.sleep(2000)
+      expectMsg(scala.concurrent.Future.successful(0))
     }
   }
 }

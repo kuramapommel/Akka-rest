@@ -18,9 +18,11 @@ object WannaTagActor {
   /**
     * WannaTag取得パターン用のメッセージ
     *
-    * @param wannaTagId wannaTag Id
+    * @param compare older or newer
+    * @param postDate 現在
+    * @param limit wannaTag Id
     */
-  case class GetWannaTag(wannaTagId: Int)
+  case class GetWannaTags(compare: String, postDate: Long, limit: Long)
 }
 
 /**
@@ -28,16 +30,25 @@ object WannaTagActor {
   */
 final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   import WannaTagActor._
+  import WannaTagDaoActor._
+  import LongExt._
+  import akka.pattern.ask
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import com.tiloom6.Tables._
 
-  private val wannaTagTableActor = context.actorOf(WannaTagTableActor.props, "wannatagTable")
+  private val wannaTagTableActor = context.actorOf(WannaTagDaoActor.props, "wannatagTable")
   context.watch(wannaTagTableActor)
 
   /**
     * WannaTagアクターのレシーバ
     */
   override def receive = {
-    case GetWannaTag(wannaTagId) =>
-      wannaTagTableActor ! wannaTagId
-      sender() ! wannaTagId
+    case GetWannaTags(compare, postDate, limit) =>
+      val futureWannatagsResult = wannaTagTableActor ? GetWannatags(compare.equals("newer"), postDate.toDatetime, limit)
+      val result = futureWannatagsResult.mapTo[Seq[WannatagRow]].map { wannatags =>
+        wannatags.foreach(wannatag => println(wannatag.title))
+        0
+      }
+      sender() ! result
   }
 }
