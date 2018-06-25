@@ -21,8 +21,8 @@ object SlickModelGenerator extends App {
   private val driver = slick.jdbc.MySQLProfile
 
   // tablesを指定してあげる、MySQLProfileのデフォルトはカタログの指定がないため、カタログを指定してあげる必要あり
-  val optWannaDatabaseTabls = Some(MTable.getTables(Some(wannamysqlConfig.getString("mysql.wanna.catalog")), Some(""), None, None))
-  val model = Await.result(db.run(driver.createModel(tables = optWannaDatabaseTabls)), Duration.Inf)
+  private val optWannaDatabaseTabls = Some(MTable.getTables(Some(wannamysqlConfig.getString("mysql.wanna.catalog")), Some(""), None, None))
+  private val model = Await.result(db.run(driver.createModel(tables = optWannaDatabaseTabls)), Duration.Inf)
   println(model.tables)
 
   // 自動生成クラス作成

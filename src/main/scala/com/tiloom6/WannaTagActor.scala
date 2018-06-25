@@ -13,7 +13,7 @@ object WannaTagActor {
     *
     * @param timeout タイムアウト時間
     */
-  def props(implicit timeout: Timeout) = Props(new WannaTagActor)
+  def props(implicit timeout: Timeout) = Props(classOf[WannaTagActor], timeout)
 
   /**
     * WannaTag取得パターン用のメッセージ

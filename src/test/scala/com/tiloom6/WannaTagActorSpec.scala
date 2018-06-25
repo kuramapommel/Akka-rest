@@ -2,14 +2,11 @@ package com.tiloom6
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import org.joda.time.DateTime
 
 import scala.concurrent.duration._
 import org.scalatest._
 
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Success, Try}
 
 class WannaTagActorSpec extends TestKit(ActorSystem("testBoxOffice"))
   with WordSpecLike // BDDスタイルのテストを実現

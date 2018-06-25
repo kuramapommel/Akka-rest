@@ -7,7 +7,6 @@ import com.typesafe.config.ConfigFactory
 import org.joda.time.DateTime
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
   * WannaTagDaoアクターのコンパニオンオブジェクト
@@ -19,7 +18,7 @@ object WannaTagDaoActor {
     *
     * @param timeout タイムアウト時間
     */
-  def props(implicit timeout: Timeout) = Props(new WannaTagDaoActor)
+  def props(implicit timeout: Timeout) = Props(classOf[WannaTagDaoActor], timeout)
 
   /**
     * WannaTag取得パターン用のメッセージ
@@ -41,10 +40,10 @@ final class WannaTagDaoActor(implicit timeout: Timeout) extends Actor {
   import com.tiloom6.Tables._
 
   /** DB情報のコンフィグ設定 */
-  private lazy val config = ConfigFactory.load("wannamysql")
+  private val config = ConfigFactory.load("wannamysql")
 
   /** データベースコネクション */
-  private lazy val db = Database.forConfig("mysql.db", config = config)
+  private val db = Database.forConfig("mysql.db", config = config)
 
   /**
     * WannaTagDaoアクターのレシーバ
