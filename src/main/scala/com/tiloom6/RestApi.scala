@@ -26,7 +26,7 @@ trait RestApi {
   }
 
   /**
-    * 指定されたhostとpostでサーバを起動する
+    * 指定されたhostとportでサーバを起動する
     *
     * @param api REST-APIルータ
     * @param host host ip
