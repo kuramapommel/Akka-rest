@@ -42,7 +42,7 @@ trait RestApi {
     // サーバ起動
     val bindingFuture = Http().bindAndHandle(api, host, port)
 
-    println(s"Server online at host = ${host}, port = ${port}. Press RETURN to stop...")
+    println(s"Server online at host = $host, port = $port. Press RETURN to stop...")
 
     // enter押下でサーバ停止
     StdIn.readLine()
