@@ -7,11 +7,13 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Promise
 import scala.util.{Failure, Success}
 
 /**
   * WannaTagのREST-APIのルーティングを管理するトレイト
+  *
+  * https://github.com/TILoom6/TILoom6doc/blob/master/til/3rd/wish_list/from_frondend.md
   */
 trait WannaTagRestApi extends RestApi {
   import WannaTagActor._
@@ -25,6 +27,11 @@ trait WannaTagRestApi extends RestApi {
   /** WannaTagのREST-APIルータ */
   protected override val routes: Route = getWannaTags ~ postWannaTags
 
+  /**
+    * WannaTag一覧を取得する
+    *
+    * GET /wannatags
+    */
   private def getWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       get {
@@ -43,6 +50,11 @@ trait WannaTagRestApi extends RestApi {
     }
   }
 
+  /**
+    * WannaTagを登録する
+    *
+    * POST /wannatags
+    */
   private def postWannaTags = pathPrefix("wannatags") {
     pathEndOrSingleSlash {
       post {

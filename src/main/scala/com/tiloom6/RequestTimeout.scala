@@ -9,6 +9,7 @@ import com.typesafe.config.Config
 trait RequestTimeout {
   import scala.concurrent.duration._
 
+  /** コンフィグ設定 */
   protected val config: Config
 
   /**

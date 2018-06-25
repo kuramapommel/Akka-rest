@@ -3,8 +3,6 @@ package com.tiloom6
 import akka.actor._
 import akka.util._
 
-import scala.concurrent.Future
-
 /**
   * WannaTagアクターのコンパニオンオブジェクト
   */
@@ -22,13 +20,15 @@ object WannaTagActor {
     *
     * @param compare older or newer
     * @param postDate 現在
-    * @param limit wannaTag Id
+    * @param limit 取得制限数
     */
   case class GetWannaTags(compare: String, postDate: Long, limit: Long)
 }
 
 /**
   * WannaTagアクター
+  *
+  * @param timeout タイムアウト時間
   */
 final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   import WannaTagActor._
@@ -36,15 +36,20 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   import LongExt._
   import akka.pattern.ask
 
-  private val wannaTagTableActor = context.actorOf(WannaTagDaoActor.props, "wannatagTable")
-  context.watch(wannaTagTableActor)
+  /** 子アクターとしてのwannaTagDaoアクター */
+  private lazy val wannaTagDaoActor = context.actorOf(WannaTagDaoActor.props, "wannatagTable")
+  // 監視対象に追加
+  context.watch(wannaTagDaoActor)
 
   /**
     * WannaTagアクターのレシーバ
+    *
+    * GetWannaTags -> 取得結果のWannaTagのSeqを取得
     */
   override def receive = {
+
     case GetWannaTags(compare, postDate, limit) =>
-      val futureWannatagsResult = wannaTagTableActor ? GetWannatags(compare.equals("newer"), postDate.toDatetime, limit)
+      val futureWannatagsResult = wannaTagDaoActor ? GetWannatags(compare.equals("newer"), postDate.toDatetime, limit)
       sender() ! futureWannatagsResult
   }
 }
