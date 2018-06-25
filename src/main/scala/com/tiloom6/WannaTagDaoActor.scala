@@ -30,8 +30,7 @@ final class WannaTagDaoActor extends Actor {
 
   override def receive = {
     case GetWannatags(isOlder, postDate, limit) =>
-      val wannatags = Await.result(db.run(Wannatag.result), Duration.Inf)
-      sender() ! wannatags
+      sender() ! Await.result(db.run(Wannatag.result), Duration.Inf)
   }
 
 }

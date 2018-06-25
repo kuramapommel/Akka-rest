@@ -3,6 +3,8 @@ package com.tiloom6
 import akka.actor._
 import akka.util._
 
+import scala.concurrent.Future
+
 /**
   * WannaTagアクターのコンパニオンオブジェクト
   */
@@ -33,8 +35,6 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   import WannaTagDaoActor._
   import LongExt._
   import akka.pattern.ask
-  import scala.concurrent.ExecutionContext.Implicits.global
-  import com.tiloom6.Tables._
 
   private val wannaTagTableActor = context.actorOf(WannaTagDaoActor.props, "wannatagTable")
   context.watch(wannaTagTableActor)
@@ -45,10 +45,6 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   override def receive = {
     case GetWannaTags(compare, postDate, limit) =>
       val futureWannatagsResult = wannaTagTableActor ? GetWannatags(compare.equals("newer"), postDate.toDatetime, limit)
-      val result = futureWannatagsResult.mapTo[Seq[WannatagRow]].map { wannatags =>
-        wannatags.foreach(wannatag => println(wannatag.title))
-        0
-      }
-      sender() ! result
+      sender() ! futureWannatagsResult
   }
 }

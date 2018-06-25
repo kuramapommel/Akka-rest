@@ -7,6 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
 
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
@@ -14,7 +15,8 @@ import scala.util.{Failure, Success}
   */
 trait WannaTagRestApi extends RestApi {
   import WannaTagActor._
-  import WannaTagRequest._
+  import WannaTagProtocol._
+  import com.tiloom6.Tables._
   import scala.concurrent.ExecutionContext.Implicits.global
 
   /** タイムアウト時間 */
@@ -28,10 +30,13 @@ trait WannaTagRestApi extends RestApi {
       get {
         // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
         parameters('compare ? "older", 'postDate.as[Long] ? -1L, 'limit.as[Int] ? -1L) { (compare, postDate, limit) =>
-          // getWannatagの実行を待って成功ならSuccess, 失敗ならFialure
+          // getWannatagの実行を待って成功ならSuccess, 失敗ならFailure
           onComplete(getWannatag(compare, postDate, limit)) {
-            case Success(res) => complete(OK, s"older = $compare, postDate = $postDate, limit = $limit, wannatag = $res")
-            case Failure(e) => complete(BadRequest)
+            case Success(wannatags) =>
+              // Seq[WannatagRow]をSeq[WannaTagGet]に変換する
+              complete(OK, wannatags.map(wannatag => WannaTagGet(wannatag.id, wannatag.title, wannatag.body, wannatag.username, wannatag.postDate.getMillis, true)))
+            case Failure(e) =>
+              complete(InternalServerError, e.getMessage)
           }
         }
       }
@@ -57,8 +62,12 @@ trait WannaTagRestApi extends RestApi {
     * @return WannaTag
     */
   private def getWannatag(compare: String, postDate: Long, limit: Long) = {
-    // Future[Any]型で受け取る
     val futureResult = wannatagActor ? GetWannaTags(compare, postDate, limit)
-    futureResult.mapTo[Int]
+    for {
+      // Future[Promise[Any]]型からPromise[Any]を抜き取る
+      promiseResult <- futureResult
+      // Promise[Any]をFuture[Seq[WannatagRow]]に変換してSeq[WannatagRow]を抜き取る
+      wannatags <- promiseResult.asInstanceOf[Promise[Any]].future.mapTo[Seq[WannatagRow]]
+    } yield wannatags
   }
 }
