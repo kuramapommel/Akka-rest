@@ -24,10 +24,11 @@ class WannaTagActorSpec extends TestKit(ActorSystem("testBoxOffice"))
 
       val duration = Duration.create("3000 millis")
       implicit val timeout: Timeout = FiniteDuration(duration.length, duration.unit)
+      // TODO 子アクターのMockを渡す形にしたい
       val wannatagActor = system.actorOf(WannaTagActor.props, "wannatag")
 
       // テスト実行
-      wannatagActor ! GetWannaTags("older", 1, 20)
+      wannatagActor ! GetWannaTags("newer", 0, 1)
 
       // アサート
       expectMsgPF() {
@@ -42,7 +43,7 @@ class WannaTagActorSpec extends TestKit(ActorSystem("testBoxOffice"))
           // Futur[Try[Seq[WannatagRow]]] -> WannatagRow 途中で例外が発生したらテストエラーになるだけなのでgetでOK
           val tryWannatags = futureWannatags.value.get
           val wannatags = tryWannatags.get
-          val wannatag = wannatags.headOption.get
+          val wannatag = wannatags.head
 
           // アサーション
           wannatag.title must be("aaa")

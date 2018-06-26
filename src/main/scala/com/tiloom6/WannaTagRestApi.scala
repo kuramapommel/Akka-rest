@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
 
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
@@ -38,9 +38,10 @@ trait WannaTagRestApi extends RestApi {
         // Getパラメータはこんな感じに受けられる https://doc.akka.io/docs/akka-http/current/routing-dsl/directives/parameter-directives/parameters.html
         parameters('compare ? "older", 'postDate.as[Long] ? -1L, 'limit.as[Int] ? -1L) { (compare, postDate, limit) =>
           // getWannatagの実行を待って成功ならSuccess, 失敗ならFailure
-          onComplete(getWannatag(compare, postDate, limit)) {
+          // TODO エラーハンドリングもうちょっとちゃんとしたい
+          onComplete(validateGetParameter(compare).flatMap(_ => getWannatag(compare, postDate, limit))) {
             case Success(wannatags) =>
-              // Seq[WannatagRow]をSeq[WannaTagGet]に変換する
+              // Seq[WannatagRow]をSeq[WannaTagGet]に変換してjsonにして返す
               complete(OK, wannatags.map(wannatag => WannaTagGet(wannatag.id, wannatag.title, wannatag.body, wannatag.username, wannatag.postDate.getMillis, true)))
             case Failure(e) =>
               complete(InternalServerError, e.getMessage)
@@ -67,6 +68,19 @@ trait WannaTagRestApi extends RestApi {
 
   /** WannaTagのREST-APIのトップレベルActorRef */
   private lazy val wannatagActor = actorSystem.actorOf(WannaTagActor.props, "wannatag")
+
+  /**
+    * GET のバリデーションチェック
+    *
+    * @param compare newer or older
+    * @return チェック結果
+    */
+  private def validateGetParameter(compare: String) = {
+    compare match {
+      case "older" | "newer" => Future.successful()
+      case _ => throw new Exception("Validation Error!!")
+    }
+  }
 
   /**
     * WannaTagを取得する
