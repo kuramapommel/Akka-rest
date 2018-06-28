@@ -1,7 +1,6 @@
 package com.tiloom6
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.LinkParams.title
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.{MustMatchers, WordSpecLike}
 
@@ -18,6 +17,7 @@ class WannaTagTableActorSpec extends TestKit(ActorSystem("testWannaTagTable"))
   "A WannaTagTable Actor" must {
     "insert wannatag when it receives a InsertWannaTag message" in {
       import akka.util.Timeout
+      import com.tiloom6.WannaTagTableActor.InsertWannaTag
 
       val duration = Duration.create("1000 millis")
       implicit val timeout: Timeout = FiniteDuration(duration.length, duration.unit)
@@ -33,7 +33,8 @@ class WannaTagTableActorSpec extends TestKit(ActorSystem("testWannaTagTable"))
 
           val userId = futureUserId.value.get
 
-          userId must be 1
+          userId must be(1)
+        case _ => fail()
       }
     }
   }

@@ -16,6 +16,8 @@ trait RestApi {
   /** REST-APIを統括するActorSystem */
   protected implicit val actorSystem: ActorSystem
 
+  protected implicit lazy val dispatcher = actorSystem.dispatcher
+
   /**
     * サーバ起動
     */

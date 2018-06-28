@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.util.Timeout
 import akka.http.scaladsl.server.Route
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Success}
 
 /**
@@ -19,7 +19,6 @@ trait WannaTagRestApi extends RestApi {
   import WannaTagActor._
   import WannaTagProtocol._
   import com.tiloom6.Tables._
-  import scala.concurrent.ExecutionContext.Implicits.global
 
   /** タイムアウト時間 */
   protected implicit val timeout: Timeout
@@ -89,11 +88,14 @@ trait WannaTagRestApi extends RestApi {
     */
   private def getWannatag(compare: String, postDate: Long, limit: Long) = {
     val futureResult = wannatagActor ? GetWannaTags(compare, postDate, limit)
-    for {
-      // Future[Promise[Any]]型からPromise[Any]を抜き取る
-      promiseResult <- futureResult
-      // Promise[Any]をFuture[Seq[WannatagRow]]に変換してSeq[WannatagRow]を抜き取る
-      wannatags <- promiseResult.asInstanceOf[Promise[Any]].future.mapTo[Seq[WannatagRow]]
+    val futureWannaTags = for {
+      // TODO どこからPromise型が登場したのかは不明
+      futurePromiseWannatags <- futureResult.mapTo[Future[Promise[Seq[WannatagRow]]]]
+      promiseWannatags <- futurePromiseWannatags
+      wannatags <- promiseWannatags.future
     } yield wannatags
+
+    Await.ready(futureWannaTags, timeout.duration)
+    futureWannaTags
   }
 }

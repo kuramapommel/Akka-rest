@@ -24,6 +24,14 @@ object WannaTagTableActor {
     * @param optLimit 取得制限数
     */
   case class SelectWannatags(isOlder: Boolean, optTargetDate: Option[DateTime], optLimit: Option[Long])
+
+  /**
+    * WannaTagインサート用のメッセージ
+    * @param title タイトル
+    * @param body ワナタグの内容
+    * @param userId ユーザID
+    */
+  case class InsertWannaTag(title: String, body: String, userId: Long)
 }
 
 /**
@@ -34,7 +42,6 @@ object WannaTagTableActor {
 final class WannaTagTableActor(implicit timeout: Timeout) extends Actor {
   import slick.jdbc.MySQLProfile.api._
   import com.tiloom6.Tables._
-  import scala.concurrent.Await
   import com.tiloom6.WannaTagTableActor._
   import com.typesafe.config.ConfigFactory
   import com.github.tototoshi.slick.MySQLJodaSupport._ // Rep[org.joda.time.DateTime]の拡張メソッドとか暗黙の型変換とかやってくれる
@@ -45,6 +52,8 @@ final class WannaTagTableActor(implicit timeout: Timeout) extends Actor {
   // TODO DBを外部から注入して貰う形にしたい
   /** データベースコネクション */
   private val db = Database.forConfig("mysql.db", config = config)
+
+  private implicit val dispatcher = context.dispatcher
 
   /**
     * WannaTagDaoアクターのレシーバ
@@ -61,7 +70,12 @@ final class WannaTagTableActor(implicit timeout: Timeout) extends Actor {
       // 取得制限件数があれば「limit」を付与する
       val query = if (optLimit.isEmpty) sortedSelectQuery else sortedSelectQuery.take(optLimit.get)
       // wannatagテーブルからの取得結果を返す
-      sender() ! Await.result(db.run(query.result), timeout.duration)
+      sender ! db.run(query.result)
+
+    case InsertWannaTag(title, body, userId) =>
+      // TODO usernameはUserテーブルを作ってそこから取ってくる
+      val action = (Wannatag returning Wannatag.map(_.id)) += WannatagRow(0, title, body, "", DateTime.now)
+      sender ! db.run(action)
   }
 
 }

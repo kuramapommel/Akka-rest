@@ -38,9 +38,10 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
 
   // TODO 子アクターを外部から注入して貰う形にしたい
   /** 子アクターとしてのwannaTagDaoアクター */
-  private lazy val wannaTagDaoActor = context.actorOf(WannaTagTableActor.props, "wannatagTable")
+  private lazy val wannaTagTableActor = context.actorOf(WannaTagTableActor.props, "wannatagTable")
+  private implicit lazy val dispatcher = context.dispatcher
   // 監視対象に追加
-  context.watch(wannaTagDaoActor)
+  context.watch(wannaTagTableActor)
 
   /**
     * WannaTagアクターのレシーバ
@@ -50,11 +51,11 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
   override def receive = {
 
     case GetWannaTags(compare, postDate, limit) =>
-      val futureWannatagsResult = wannaTagDaoActor ? SelectWannatags(
+      val futureWannatagsResult = wannaTagTableActor ? SelectWannatags(
         compare.equals("older"),
         if (postDate >= 0) Some(postDate.toDatetime) else None,
         if (limit >= 0) Some(limit) else None
       )
-      sender() ! futureWannatagsResult
+      sender ! futureWannatagsResult
   }
 }
