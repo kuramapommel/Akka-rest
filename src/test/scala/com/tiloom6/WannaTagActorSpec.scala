@@ -8,7 +8,7 @@ import org.scalatest._
 
 import scala.concurrent.{Await, Future}
 
-class WannaTagActorSpec extends TestKit(ActorSystem("testBoxOffice"))
+class WannaTagActorSpec extends TestKit(ActorSystem("testWannaTag"))
   with WordSpecLike // BDDスタイルのテストを実現
   with MustMatchers // パワーアサート
   with ImplicitSender // Actor側でsenderにメッセージを返している場合にそのメッセージを受け取る

@@ -7,14 +7,14 @@ import org.joda.time.DateTime
 /**
   * WannaTagDaoアクターのコンパニオンオブジェクト
   */
-object WannaTagDaoActor {
+object WannaTagTableActor {
 
   /**
     * WannaTagDaoアクターのProps生成
     *
     * @param timeout タイムアウト時間
     */
-  def props(implicit timeout: Timeout) = Props(classOf[WannaTagDaoActor], timeout)
+  def props(implicit timeout: Timeout) = Props(classOf[WannaTagTableActor], timeout)
 
   /**
     * WannaTag取得パターン用のメッセージ
@@ -23,7 +23,7 @@ object WannaTagDaoActor {
     * @param optTargetDate 対象日付
     * @param optLimit 取得制限数
     */
-  case class GetWannatags(isOlder: Boolean, optTargetDate: Option[DateTime], optLimit: Option[Long])
+  case class SelectWannatags(isOlder: Boolean, optTargetDate: Option[DateTime], optLimit: Option[Long])
 }
 
 /**
@@ -31,11 +31,11 @@ object WannaTagDaoActor {
   *
   * @param timeout タイムアウト時間
   */
-final class WannaTagDaoActor(implicit timeout: Timeout) extends Actor {
+final class WannaTagTableActor(implicit timeout: Timeout) extends Actor {
   import slick.jdbc.MySQLProfile.api._
   import com.tiloom6.Tables._
   import scala.concurrent.Await
-  import com.tiloom6.WannaTagDaoActor._
+  import com.tiloom6.WannaTagTableActor._
   import com.typesafe.config.ConfigFactory
   import com.github.tototoshi.slick.MySQLJodaSupport._ // Rep[org.joda.time.DateTime]の拡張メソッドとか暗黙の型変換とかやってくれる
 
@@ -53,7 +53,7 @@ final class WannaTagDaoActor(implicit timeout: Timeout) extends Actor {
     */
   override def receive = {
 
-    case GetWannatags(isOlder, optTargetDate, optLimit) =>
+    case SelectWannatags(isOlder, optTargetDate, optLimit) =>
       // 対象日付を取得する（なければ現在日付）
       val targetDate = optTargetDate.getOrElse(DateTime.now)
       // olderなら対象日付より過去、newerなら対象日付より未来のものを取得する、ソート順は降順（新 -> 古）
