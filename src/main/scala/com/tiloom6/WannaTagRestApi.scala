@@ -74,9 +74,9 @@ trait WannaTagRestApi extends RestApi {
     * @param compare newer or older
     * @return チェック結果
     */
-  private def validateGetParameter(compare: String) = {
+  private def validateGetParameter(compare: String) = Future {
     compare match {
-      case "older" | "newer" => Future.successful()
+      case "older" | "newer" => true
       case _ => throw new Exception("Validation Error!!")
     }
   }
@@ -84,7 +84,7 @@ trait WannaTagRestApi extends RestApi {
   /**
     * WannaTagを取得する
     *
-    * @return WannaTag
+    * @return WannaTagのリスト
     */
   private def getWannatag(compare: String, postDate: Long, limit: Long) = {
     val futureResult = wannatagActor ? GetWannaTags(compare, postDate, limit)

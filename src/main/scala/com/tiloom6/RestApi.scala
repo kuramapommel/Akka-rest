@@ -36,10 +36,8 @@ trait RestApi {
     */
   private def startHttpServer(api: Route, host: String, port: Int) = {
     import scala.io._
-    import scala.concurrent.ExecutionContext.Implicits.global
 
     implicit val materializer = ActorMaterializer()
-    implicit val dispatcher = actorSystem.dispatcher
 
     // サーバ起動
     val bindingFuture = Http().bindAndHandle(api, host, port)
