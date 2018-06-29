@@ -6,7 +6,7 @@ import akka.testkit.{ImplicitSender, TestKit}
 import scala.concurrent.duration._
 import org.scalatest._
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, Future, Promise}
 
 class WannaTagActorSpec extends TestKit(ActorSystem("testWannaTag"))
   with WordSpecLike // BDDスタイルのテストを実現
@@ -14,6 +14,8 @@ class WannaTagActorSpec extends TestKit(ActorSystem("testWannaTag"))
   with ImplicitSender // Actor側でsenderにメッセージを返している場合にそのメッセージを受け取る
   with StopSystemAfterAll // テスト後にActorSystemを停止する
   {
+
+  implicit val dispatcher = system.dispatcher
 
   "A WannaTag Actor" must {
     import WannaTagActor._
@@ -34,21 +36,18 @@ class WannaTagActorSpec extends TestKit(ActorSystem("testWannaTag"))
       expectMsgPF() {
         case futureResult: Future[Any] =>
 
-          // Actorからの受け取り結果をFuture[Seq[WannatagRow]]に変換
-          val futureWannatags = futureResult.mapTo[Seq[WannatagRow]]
+          // Actorからの受け取り結果をFuture[Promise[Seq[WannatagRow]]]に変換
+          val futurePromiseWannatags = futureResult.mapTo[Promise[Seq[WannatagRow]]]
+          val futureWannatags = futurePromiseWannatags.flatMap(p => p.future)
 
           // futureの処理待ち
           Await.ready(futureWannatags, duration)
 
           // Futur[Try[Seq[WannatagRow]]] -> WannatagRow 途中で例外が発生したらテストエラーになるだけなのでgetでOK
-          val tryWannatags = futureWannatags.value.get
-          val wannatags = tryWannatags.get
-          val wannatag = wannatags.head
+          val wannatags = futureWannatags.value.get.get
 
           // アサーション
-          wannatag.title must be("aaa")
-          wannatag.body must be("bbb")
-          wannatag.username must be("ccc")
+          wannatags.length must be(1)
 
         case _ => fail()
       }
