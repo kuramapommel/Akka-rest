@@ -95,7 +95,6 @@ trait WannaTagRestApi extends RestApi {
       wannatags <- promiseWannatags.future
     } yield wannatags
 
-    Await.ready(futureWannaTags, timeout.duration)
     futureWannaTags
   }
 }
