@@ -16,15 +16,18 @@ trait RestApi {
   /** REST-APIを統括するActorSystem */
   protected implicit val actorSystem: ActorSystem
 
+  /** Future処理を実行するExecutionContext */
   protected implicit lazy val dispatcher = actorSystem.dispatcher
+
+  /** Streamを実行するためのマテリアライザ */
+  private implicit lazy val materializer = ActorMaterializer()
 
   /**
     * サーバ起動
     */
   def start() = {
-    val host = actorSystem.settings.config.getString("http.host")
-    val port = actorSystem.settings.config.getInt("http.port")
-    startHttpServer(routes, host, port)
+    val config = actorSystem.settings.config
+    startHttpServer(routes, config.getString("http.host"), config.getInt("http.port"))
   }
 
   /**
@@ -36,8 +39,6 @@ trait RestApi {
     */
   private def startHttpServer(api: Route, host: String, port: Int) = {
     import scala.io._
-
-    implicit val materializer = ActorMaterializer()
 
     // サーバ起動
     val bindingFuture = Http().bindAndHandle(api, host, port)

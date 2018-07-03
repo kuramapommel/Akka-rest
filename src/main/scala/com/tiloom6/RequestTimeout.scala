@@ -18,6 +18,7 @@ trait RequestTimeout {
     * @return タイムアウト時間
     */
   def configuredRequestTimeout: Timeout = {
+    // AkkaHttp-coreのデフォルトタイムアウトは20秒
     val requestTimeout = config.getString("akka.http.server.request-timeout")
     val duration = Duration(requestTimeout)
     FiniteDuration(duration.length, duration.unit)

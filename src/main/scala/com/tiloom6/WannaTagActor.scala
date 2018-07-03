@@ -56,6 +56,7 @@ final class WannaTagActor(implicit timeout: Timeout) extends Actor {
         if (postDate >= 0) Some(postDate.toDatetime) else None,
         if (limit >= 0) Some(limit) else None
       )
+
       sender ! futureWannatagsResult
   }
 }
